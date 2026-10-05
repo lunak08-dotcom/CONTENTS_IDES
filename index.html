@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>콘텐츠 아이디어 데스크</title>
+<meta name="description" content="주제와 타깃 고객을 입력하면 제목, 도입 문구, 본문 구성, CTA, 해시태그, 30일 게시 계획 초안을 만들어 주는 템플릿 기반 도구">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  /* =========================================================
+     🎨 색상 바꾸기: 아래 변수 값만 바꾸면 전체 색이 바뀝니다.
+     ========================================================= */
+  :root {
+    --navy: #14203A;        /* 배경 남색 */
+    --navy-2: #1C2B4A;      /* 조금 밝은 남색 (패널) */
+    --navy-3: #2A3B60;      /* 테두리용 남색 */
+    --cream: #FBF5E6;       /* 메모지 크림색 */
+    --cream-2: #F2E8CF;     /* 메모지 안쪽 영역 */
+    --ink: #1E2433;         /* 본문 글자색 */
+    --muted: #5D6475;       /* 보조 글자색 */
+    --mint: #5ED6B8;        /* 포인트 민트 */
+    --mint-soft: #D5F5EC;   /* 연한 민트 */
+    --mint-deep: #157A63;   /* 진한 민트 (크림 위 글자) */
+    --line: #E2D6B8;        /* 메모지 구분선 */
+    --error: #B8402B;       /* 오류 안내 */
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--navy);
+    background-image:
+      radial-gradient(circle at 12% 0%, rgba(94,214,184,.10), transparent 40%),
+      radial-gradient(circle at 100% 30%, rgba(94,214,184,.06), transparent 35%);
+    background-attachment: fixed;
+    color: #E8EDF7;
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    line-height: 1.6;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 20px 72px; }
+
+  /* ---------- 상단 소개 ---------- */
+  header { margin-bottom: 32px; }
+  .kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 999px;
+    background: rgba(94,214,184,.12); color: var(--mint);
+    font-size: 14px; font-weight: 600; border: 1px solid rgba(94,214,184,.35);
+  }
+  .kicker::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
+  h1 { font-size: clamp(30px, 6vw, 48px); line-height: 1.15; letter-spacing: -.03em; margin: 16px 0 10px; font-weight: 800; color: #fff; }
+  .intro { margin: 0; color: #B9C3D8; font-size: clamp(15px, 2.4vw, 17px); }
+
+  /* ---------- 2열 레이아웃 (모바일은 1열) ---------- */
+  .layout { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: start; }
+  @media (min-width: 960px) {
+    .layout { grid-template-columns: 420px minmax(0, 1fr); }
+    .brief { position: sticky; top: 24px; }
+  }
+
+  /* ---------- 크림색 메모지 카드 ---------- */
+  .memo {
+    position: relative;
+    background: var(--cream);
+    color: var(--ink);
+    border-radius: var(--radius);
+    padding: 34px 24px 26px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.28);
+  }
+  .memo::before { /* 메모지 위 마스킹테이프 */
+    content: ""; position: absolute; top: -11px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+    width: 110px; height: 24px; border-radius: 4px;
+    background: rgba(94,214,184,.75);
+  }
+  .memo h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.02em; }
+  .memo .sub { margin: 0 0 22px; color: var(--muted); font-size: 14px; }
+
+  /* ---------- 입력 항목 ---------- */
+  .field { margin-bottom: 20px; }
+  .field > label, fieldset legend { display: block; font-weight: 700; font-size: 15px; margin-bottom: 8px; padding: 0; }
+  .req { color: var(--error); font-size: 13px; font-weight: 600; margin-left: 4px; }
+  .opt { color: var(--muted); font-size: 13px; font-weight: 500; margin-left: 4px; }
+  input[type="text"] {
+    width: 100%; padding: 13px 14px; font: inherit; font-size: 16px; color: var(--ink);
+    background: #fff; border: 1.5px solid var(--line); border-radius: 12px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input[type="text"]::placeholder { color: #9AA0AD; }
+  input[type="text"]:focus { outline: none; border-color: var(--mint-deep); box-shadow: 0 0 0 4px rgba(94,214,184,.3); }
+  input[aria-invalid="true"] { border-color: var(--error); background: #FFF6F3; }
+  .hint { font-size: 13px; color: var(--muted); margin: 6px 2px 0; }
+  .error { font-size: 14px; color: var(--error); font-weight: 600; margin: 6px 2px 0; }
+  .error:empty { display: none; }
+
+  fieldset { border: 0; margin: 0 0 20px; padding: 0; min-width: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { position: relative; }
+  .chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .chip span {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 16px; min-height: 44px; border-radius: 999px; cursor: pointer;
+    background: #fff; border: 1.5px solid var(--line); color: var(--ink);
+    font-size: 15px; font-weight: 500; transition: all .15s; user-select: none;
+  }
+  .chip span:hover { border-color: var(--mint-deep); }
+  /* ✅ 선택된 버튼: 민트 배경 + 체크 표시 + 굵은 글씨 */
+  .chip input:checked + span {
+    background: var(--mint); border-color: var(--mint-deep); color: #0D2A23; font-weight: 800;
+    box-shadow: 0 3px 0 var(--mint-deep);
+  }
+  .chip input:checked + span::before { content: "✓"; font-weight: 900; }
+  .chip input:focus-visible + span { outline: 3px solid var(--navy); outline-offset: 2px; }
+
+  /* ---------- 버튼 ---------- */
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+  button { font: inherit; cursor: pointer; border-radius: 14px; }
+  .btn-primary {
+    flex: 1 1 200px; padding: 15px 20px; font-size: 17px; font-weight: 800;
+    background: var(--navy); color: var(--mint); border: 0;
+    box-shadow: 0 4px 0 #0A1224; transition: transform .1s, box-shadow .1s;
+  }
+  .btn-primary:hover { background: #1A2A4C; }
+  .btn-primary:active { transform: translateY(3px); box-shadow: 0 1px 0 #0A1224; }
+  .btn-ghost {
+    flex: 0 1 auto; padding: 14px 16px; font-size: 15px; font-weight: 700;
+    background: transparent; color: var(--ink); border: 1.5px dashed var(--muted);
+  }
+  .btn-ghost:hover { border-style: solid; border-color: var(--mint-deep); color: var(--mint-deep); }
+  button:focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; }
+
+  /* ---------- 결과 영역 ---------- */
+  .results-panel {
+    background: var(--navy-2); border: 1px solid var(--navy-3);
+    border-radius: var(--radius); padding: 24px 20px; min-width: 0;
+  }
+  .results-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .results-head h2 { margin: 0; font-size: 22px; color: #fff; letter-spacing: -.02em; }
+  .btn-copy {
+    padding: 11px 18px; font-size: 15px; font-weight: 800;
+    background: var(--mint); color: #0D2A23; border: 0;
+  }
+  .btn-copy:hover { filter: brightness(1.06); }
+  .notice {
+    display: flex; gap: 10px; align-items: flex-start;
+    margin: 12px 0 20px; padding: 12px 14px; border-radius: 12px;
+    background: rgba(94,214,184,.1); border: 1px solid rgba(94,214,184,.3);
+    color: #CFF3E9; font-size: 14px;
+  }
+  .notice b { color: var(--mint); }
+  .copy-status { font-size: 14px; color: var(--mint); margin: 0 0 12px; min-height: 1em; }
+  .copy-status:empty { display: none; }
+  .copy-fallback { display: none; margin-bottom: 18px; }
+  .copy-fallback.show { display: block; }
+  .copy-fallback textarea {
+    width: 100%; height: 220px; padding: 12px; font: inherit; font-size: 14px;
+    border-radius: 12px; border: 2px solid var(--mint); background: var(--cream); color: var(--ink);
+  }
+
+  .empty {
+    text-align: center; padding: 48px 16px; color: #A3AEC6;
+    border: 2px dashed var(--navy-3); border-radius: 14px;
+  }
+  .empty .big { font-size: 40px; display: block; margin-bottom: 6px; }
+
+  .result-card {
+    background: var(--cream); color: var(--ink);
+    border-radius: 14px; padding: 20px 18px; margin-bottom: 16px;
+  }
+  .result-card h3 {
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 0 14px; font-size: 17px; letter-spacing: -.01em;
+  }
+  .result-card h3 .num {
+    display: inline-grid; place-items: center; width: 28px; height: 28px; flex: none;
+    border-radius: 8px; background: var(--navy); color: var(--mint); font-size: 14px; font-weight: 800;
+  }
+  .result-card ol, .result-card ul { margin: 0; padding-left: 22px; }
+  .result-card li { margin-bottom: 8px; }
+  .result-card li:last-child { margin-bottom: 0; }
+  .tag-label {
+    display: inline-block; font-size: 12px; font-weight: 700; color: var(--mint-deep);
+    background: var(--mint-soft); padding: 1px 8px; border-radius: 6px; margin-right: 6px;
+  }
+  .body-list { list-style: none; padding: 0 !important; }
+  .body-list li { padding: 12px 14px; background: var(--cream-2); border-radius: 10px; }
+  .body-list .part { display: block; font-size: 13px; font-weight: 800; color: var(--mint-deep); margin-bottom: 2px; }
+  .caution { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
+  .tone-line { margin: 0 0 12px; font-size: 14px; color: var(--muted); }
+
+  .hashtags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hashtags span {
+    padding: 6px 12px; border-radius: 999px; background: var(--navy); color: var(--mint);
+    font-size: 14px; font-weight: 600;
+  }
+
+  /* 게시 계획 카드 */
+  .plan-summary { margin: 0 0 14px; font-size: 14px; color: var(--muted); }
+  .plan-list { list-style: none; padding: 0 !important; display: grid; gap: 10px; }
+  @media (min-width: 640px) { .plan-list { grid-template-columns: 1fr 1fr; } }
+  .plan-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--mint);
+    border-radius: 12px; padding: 12px; margin: 0 !important;
+  }
+  .plan-date {
+    flex: none; width: 58px; text-align: center; border-radius: 10px;
+    background: var(--navy); color: #fff; padding: 6px 0; line-height: 1.2;
+  }
+  .plan-date .md { display: block; font-size: 15px; font-weight: 800; }
+  .plan-date .dow { display: block; font-size: 12px; color: var(--mint); }
+  .plan-body { min-width: 0; }
+  .plan-title { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
+  .plan-meta { font-size: 12px; color: var(--muted); }
+  .plan-meta .tag-label { margin-right: 4px; }
+
+  footer { margin-top: 40px; text-align: center; color: #7F8BA6; font-size: 13px; }
+
+  @media (max-width: 480px) {
+    .wrap { padding: 28px 16px 56px; }
+    .memo { padding: 30px 18px 22px; }
+    .results-panel { padding: 20px 14px; }
+    .result-card { padding: 18px 14px; }
+    .btn-copy { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 1~3. 상단 안내 · 제목 · 소개 -->
+  <header>
+    <span class="kicker">콘텐츠 기획을 위한 나만의 작업 공간</span>
+    <h1>콘텐츠 아이디어 데스크</h1>
+    <p class="intro">브리핑을 입력하고 콘텐츠 아이디어와 게시 계획을 만들어 보세요.</p>
+  </header>
+
+  <main class="layout">
+
+    <!-- 4~5. 브리핑 입력 영역 -->
+    <section class="memo brief" aria-labelledby="brief-title">
+      <h2 id="brief-title">📝 브리핑 메모</h2>
+      <p class="sub">별표(필수) 항목은 꼭 채워 주세요.</p>
+
+      <form id="briefForm" novalidate>
+        <div class="field">
+          <label for="topic">주제 <span class="req">(필수)</span></label>
+          <input type="text" id="topic" name="topic" placeholder="예: 대학생을 위한 바이브코딩 입문" aria-describedby="topic-error" autocomplete="off">
+          <p class="error" id="topic-error" role="alert"></p>
+        </div>
+
+        <div class="field">
+          <label for="target">타깃 고객 <span class="req">(필수)</span></label>
+          <input type="text" id="target" name="target" placeholder="예: 코딩 경험이 없는 대학생" aria-describedby="target-error" autocomplete="off">
+          <p class="error" id="target-error" role="alert"></p>
+        </div>
+
+        <div class="field">
+          <label for="tone">말투 <span class="opt">(선택)</span></label>
+          <input type="text" id="tone" name="tone" placeholder="비워두면 '친근하고 이해하기 쉽게'" aria-describedby="tone-hint" autocomplete="off">
+          <p class="hint" id="tone-hint">비워두면 “친근하고 이해하기 쉽게”가 적용됩니다.</p>
+        </div>
+
+        <fieldset>
+          <legend>플랫폼</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="platform" value="블로그" checked><span>블로그</span></label>
+            <label class="chip"><input type="radio" name="platform" value="인스타그램"><span>인스타그램</span></label>
+            <label class="chip"><input type="radio" name="platform" value="유튜브"><span>유튜브</span></label>
+            <label class="chip"><input type="radio" name="platform" value="뉴스레터"><span>뉴스레터</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>콘텐츠 목적</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="purpose" value="교육" checked><span>교육</span></label>
+            <label class="chip"><input type="radio" name="purpose" value="홍보"><span>홍보</span></label>
+            <label class="chip"><input type="radio" name="purpose" value="판매"><span>판매</span></label>
+            <label class="chip"><input type="radio" name="purpose" value="브랜딩"><span>브랜딩</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>게시 빈도</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="frequency" value="매일"><span>매일</span></label>
+            <label class="chip"><input type="radio" name="frequency" value="주 1회" checked><span>주 1회</span></label>
+            <label class="chip"><input type="radio" name="frequency" value="주 2~3회"><span>주 2~3회</span></label>
+            <label class="chip"><input type="radio" name="frequency" value="격주"><span>격주</span></label>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary">✨ 아이디어 생성하기</button>
+          <button type="button" class="btn-ghost" id="exampleBtn">예시 입력</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 6. 생성 결과 영역 -->
+    <section class="results-panel" id="results" aria-labelledby="results-title" tabindex="-1">
+      <div class="results-head">
+        <h2 id="results-title">생성 결과</h2>
+        <button type="button" class="btn-copy" id="copyBtn" hidden>📋 전체 복사</button>
+      </div>
+      <div class="notice">
+        <span aria-hidden="true">ℹ️</span>
+        <span><b>입력 내용을 조합한 템플릿 기반 초안입니다.</b> 통계·후기·효과는 넣지 않았어요. 실제 정보로 확인하고 다듬어 사용하세요. 입력 내용과 결과는 저장되지 않으며 새로고침하면 사라집니다.</span>
+      </div>
+      <p class="copy-status" id="copyStatus" aria-live="polite"></p>
+      <div class="copy-fallback" id="copyFallback">
+        <label for="copyArea" style="display:block;font-size:14px;margin-bottom:6px;color:#CFF3E9">
+          자동 복사가 되지 않는 환경이에요. 아래 상자를 길게 누르거나 클릭한 뒤 <b>전체 선택(Ctrl+A / ⌘+A)</b> → <b>복사(Ctrl+C / ⌘+C)</b> 해 주세요.
+        </label>
+        <textarea id="copyArea" readonly></textarea>
+      </div>
+      <div id="output" aria-live="polite">
+        <div class="empty">
+          <span class="big" aria-hidden="true">🗂️</span>
+          왼쪽(모바일은 위쪽) 메모에 브리핑을 적고<br><b>아이디어 생성하기</b>를 눌러 보세요.
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>콘텐츠 아이디어 데스크 · 템플릿 기반 초안 도구 · 데이터는 저장되지 않습니다</footer>
+</div>
+
+<script>
+/* ==================================================================
+   📌 학생 수정 가이드
+   - [1] 문장 틀(템플릿)  : 제목·도입 문구·본문·CTA·해시태그 문장을 바꾸는 곳
+   - [2] 게시 일정 계산    : 게시 빈도별 날짜 규칙을 바꾸는 곳
+   - [3] 화면 그리기·동작  : 보통은 고치지 않아도 됩니다
+   문장 틀 안의 {주제} {타깃} 같은 중괄호는 입력값으로 바뀝니다.
+   {주제|을} 처럼 쓰면 받침에 맞게 '을/를'이 자동으로 붙어요.
+   (지원: |을 |이 |은 |과 |로)
+   ================================================================== */
+
+
+/* ==================================================================
+   [1] 문장 틀(템플릿) ✏️ — 여기를 고치면 생성되는 문장이 바뀝니다
+   ================================================================== */
+
+// 말투를 비워둘 때 쓰는 기본 말투
+const DEFAULT_TONE = "친근하고 이해하기 쉽게";
+
+// ✏️ 콘텐츠 목적별 문장 틀
+//    titles 4개 + 플랫폼 제목 1개 = 제목 아이디어 5개
+//    ⚠️ 없는 통계·후기·효과(예: "90%가 만족", "매출 2배")는 넣지 마세요.
+const PURPOSE_TEMPLATES = {
+  "교육": {
+    titles: [
+      "{주제} 첫걸음: {타깃}도 바로 따라 하는 기초",
+      "처음이라면 여기서부터: {주제} 기초 정리",
+      "{주제}, 헷갈리는 개념만 골라 쉽게 풀어보기",
+      "자주 묻는 질문으로 정리한 {주제} Q&A"
+    ],
+    hooks: [
+      "{주제|이} 어렵게 느껴졌다면, 오늘은 가장 기본부터 함께 짚어볼게요.",
+      "{타깃}에게 {주제|은} 어디서부터 시작하면 좋을까요?",
+      "용어부터 막힌 적 있나요? {주제|을} 처음 배우는 순서대로 정리했어요."
+    ],
+    body: {
+      intro: "{타깃|이} {주제|을} 처음 접할 때 느끼는 막막함을 짚고, 이번 콘텐츠에서 다룰 범위를 소개합니다.",
+      points: [
+        "핵심 개념 — {주제}의 기본 용어와 원리를 쉬운 말로 설명하기",
+        "따라 해보기 — 처음 해보는 사람이 그대로 실습할 수 있도록 단계별로 정리하기",
+        "자주 막히는 부분 — 처음 배울 때 헷갈리기 쉬운 지점과 스스로 확인하는 방법"
+      ],
+      outro: "오늘 내용을 한 줄로 요약하고, 다음 콘텐츠에서 이어서 배울 내용을 예고합니다."
+    },
+    cta: [
+      "오늘 내용 중 더 알고 싶은 부분을 {반응|로} 남겨 주세요. 다음 콘텐츠에서 다뤄볼게요.",
+      "{주제} 이야기를 계속 받아보고 싶다면 {구독} 해 두세요."
+    ],
+    tags: ["기초부터", "배움기록", "쉽게배우기"],
+    caution: ""
+  },
+  "홍보": {
+    titles: [
+      "{주제} 소식을 전합니다",
+      "{타깃}에게 전하는 {주제} 안내",
+      "{주제}, 이렇게 참여할 수 있어요",
+      "한눈에 보는 {주제}: 일정과 참여 방법"
+    ],
+    hooks: [
+      "{타깃}에게 알리고 싶은 소식이 있어요. 바로 {주제} 이야기입니다.",
+      "{주제|이} 무엇인지, 누구에게 필요한지 짧게 정리해 드릴게요.",
+      "관심 있던 분이라면 끝까지 확인해 주세요. {주제} 참여 방법을 안내합니다."
+    ],
+    body: {
+      intro: "{주제|을} 한 문장으로 소개하고, {타깃|이} 이 소식을 확인해야 하는 이유를 밝힙니다.",
+      points: [
+        "무엇인가요 — {주제}의 내용과 진행 방식을 사실 그대로 소개하기",
+        "누구에게 맞나요 — {타깃}의 상황에서 참여하면 좋은 경우 설명하기",
+        "어떻게 참여하나요 — 일정·장소·신청 방법 등 확정된 정보만 정리하기"
+      ],
+      outro: "핵심 일정과 참여 방법을 다시 한 번 정리하고, 문의할 수 있는 곳을 안내합니다."
+    },
+    cta: [
+      "자세한 내용은 {링크위치}에서 확인해 주세요.",
+      "함께하면 좋을 친구에게 이 소식을 공유해 주세요."
+    ],
+    tags: ["소식", "안내", "함께해요"],
+    caution: "⚠️ 일정·장소·조건은 확정된 사실만 넣어 주세요."
+  },
+  "판매": {
+    titles: [
+      "{주제}, 결정 전에 확인할 체크리스트",
+      "{주제} 선택 가이드: 상황별로 정리했어요",
+      "{주제} 구성과 이용 방법 한눈에 보기",
+      "{주제|이} 맞는 사람, 다른 선택이 나은 사람"
+    ],
+    hooks: [
+      "{주제|을} 고민 중인 {타깃}이라면, 결정 전에 이것부터 확인해 보세요.",
+      "무엇이 들어 있고 어떻게 이용하는지, {주제|을} 있는 그대로 소개합니다.",
+      "나에게 필요한지 헷갈린다면, 지금 상황부터 함께 점검해 볼까요?"
+    ],
+    body: {
+      intro: "{타깃|이} {주제|을} 고민하는 상황을 짚고, 이번 콘텐츠에서 확인할 내용을 안내합니다.",
+      points: [
+        "구성 소개 — {주제}에 포함된 내용과 이용 방법을 사실대로 정리하기",
+        "이런 분께 맞아요 — {타깃}의 상황별로 필요한 경우와 아닌 경우 나누기",
+        "구매 전 확인 — 가격·기간·환불 등 실제 조건을 정확히 안내하기"
+      ],
+      outro: "구매 전 확인할 점을 요약하고, 궁금한 점을 문의할 수 있는 방법을 안내합니다."
+    },
+    cta: [
+      "가격과 구성은 {링크위치}에서 확인할 수 있어요.",
+      "구매 전에 궁금한 점은 {반응|로} 편하게 물어봐 주세요."
+    ],
+    tags: ["구매가이드", "체크리스트", "선택팁"],
+    caution: "⚠️ 가격·구성·환불 조건은 실제 정보만 쓰고, 확인되지 않은 효과나 후기는 넣지 마세요."
+  },
+  "브랜딩": {
+    titles: [
+      "우리가 {주제|을} 이야기하는 이유",
+      "{타깃|과} 함께 만들어가는 {주제} 이야기",
+      "{주제}에 담은 우리의 기준",
+      "{주제} 비하인드: 만드는 과정 기록"
+    ],
+    hooks: [
+      "왜 하필 {주제}일까요? 오늘은 저희가 이 일을 하는 이유를 들려드릴게요.",
+      "{타깃}의 이야기를 들으며 {주제|을} 다시 생각하게 됐어요.",
+      "결과만 보여드리기보다, {주제|을} 만드는 과정을 솔직하게 나눠보려 합니다."
+    ],
+    body: {
+      intro: "{주제|와} 관련해 우리가 가진 생각과 이 콘텐츠를 쓰게 된 계기를 소개합니다.",
+      points: [
+        "시작한 이유 — {주제|을} 다루게 된 계기와 문제의식",
+        "우리의 기준 — {주제|을} 할 때 지키는 원칙과 일하는 방식",
+        "함께하는 사람들 — {타깃|과} 나누고 싶은 이야기와 앞으로의 방향"
+      ],
+      outro: "우리가 지향하는 방향을 정리하고, {타깃}의 생각도 듣고 싶다는 메시지로 마무리합니다."
+    },
+    cta: [
+      "여러분은 {주제|을} 어떻게 생각하나요? {반응|로} 이야기 나눠 주세요.",
+      "앞으로의 이야기도 함께하고 싶다면 {구독} 해 주세요."
+    ],
+    tags: ["브랜드스토리", "우리의기준", "비하인드"],
+    caution: "⚠️ 실제 경험과 사실에 근거한 이야기만 담아 주세요."
+  }
+};
+
+// ✏️ 플랫폼별 문장 틀 — 같은 목적이라도 플랫폼마다 구성 이름과 행동 문구가 달라집니다
+const PLATFORM_TEMPLATES = {
+  "블로그": {
+    title: "{주제} 총정리: 처음부터 끝까지 단계별 가이드",
+    hookLabel: "첫 문단",
+    bodyLabels: { intro: "서론", points: ["소제목 1", "소제목 2", "소제목 3"], outro: "맺음말" },
+    formatTip: "소제목마다 2~3문단으로 쓰고, 단계는 번호 목록이나 표로 정리하면 읽기 쉬워요.",
+    words: { 반응: "댓글", 구독: "이웃 추가", 링크위치: "본문 아래 링크" },
+    tags: ["블로그", "정보공유"]
+  },
+  "인스타그램": {
+    title: "저장해 두고 보는 {주제} 카드뉴스",
+    hookLabel: "첫 장 문구",
+    bodyLabels: { intro: "1장 · 표지", points: ["2장", "3장", "4장"], outro: "마지막 장" },
+    formatTip: "한 장에 메시지 하나만! 큰 글씨로 짧게 쓰고, 캡션에 자세한 설명을 덧붙이세요.",
+    words: { 반응: "댓글", 구독: "저장하고 팔로우", 링크위치: "프로필 링크" },
+    tags: ["카드뉴스", "인스타그램"]
+  },
+  "유튜브": {
+    title: "{주제}, 영상 하나로 흐름 잡기",
+    hookLabel: "오프닝 멘트",
+    bodyLabels: { intro: "오프닝", points: ["챕터 1", "챕터 2", "챕터 3"], outro: "엔딩" },
+    formatTip: "챕터마다 화면 자막으로 핵심 문장을 띄우고, 설명란에 챕터 시간표를 적어 두세요.",
+    words: { 반응: "댓글", 구독: "구독과 알림 설정", 링크위치: "영상 설명란" },
+    tags: ["유튜브", "영상콘텐츠"]
+  },
+  "뉴스레터": {
+    title: "이번 호: {주제}, 함께 알아봐요",
+    hookLabel: "인사 다음 첫 문장",
+    bodyLabels: { intro: "여는 인사", points: ["섹션 1", "섹션 2", "섹션 3"], outro: "맺음 · 다음 호 예고" },
+    formatTip: "섹션마다 굵은 제목을 달고, 메일 미리보기에 보이는 첫 줄을 특히 신경 써 주세요.",
+    words: { 반응: "답장", 구독: "구독", 링크위치: "메일 하단 링크" },
+    tags: ["뉴스레터", "레터"]
+  }
+};
+
+// ✏️ 해시태그가 8개보다 적을 때 채워 넣는 기본 태그
+const EXTRA_TAGS = ["콘텐츠기획", "콘텐츠아이디어", "오늘의콘텐츠", "기록"];
+
+// ✏️ 해시태그로 쓰지 않을 단어
+const TAG_STOPWORDS = ["위한", "위해", "대한", "관한", "하는", "있는", "없는", "함께"];
+
+
+/* ==================================================================
+   [2] 게시 일정 계산 📅 — 게시 빈도별 날짜 규칙
+   ================================================================== */
+
+const PLAN_DAYS = 30;                                 // ✏️ 계획 기간(일)
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+// ✏️ 게시 빈도 → "오늘로부터 며칠째(0 = 오늘)에 올릴지" 목록을 돌려줍니다
+function getPostingOffsets(frequency) {
+  const offsets = [];
+  if (frequency === "매일") {
+    // 매일 게시: 0, 1, 2, ... 29
+    for (let d = 0; d < PLAN_DAYS; d++) offsets.push(d);
+  } else if (frequency === "주 1회") {
+    // 시작일과 이후 7일 간격: 0, 7, 14, 21, 28
+    for (let d = 0; d < PLAN_DAYS; d += 7) offsets.push(d);
+  } else if (frequency === "주 2~3회") {
+    // 첫 주 3회 → 다음 주 2회 → 다시 3회 ... 번갈아 배치
+    const threeTimes = [0, 2, 4];   // ✏️ 3회 주: 주 시작 기준 0·2·4일째
+    const twoTimes = [0, 3];        // ✏️ 2회 주: 주 시작 기준 0·3일째
+    for (let week = 0; week * 7 < PLAN_DAYS; week++) {
+      const pattern = week % 2 === 0 ? threeTimes : twoTimes;
+      pattern.forEach(day => {
+        const d = week * 7 + day;
+        if (d < PLAN_DAYS) offsets.push(d);
+      });
+    }
+  } else if (frequency === "격주") {
+    // 시작일과 이후 14일 간격: 0, 14, 28
+    for (let d = 0; d < PLAN_DAYS; d += 14) offsets.push(d);
+  }
+  return offsets;
+}
+
+// 오늘 날짜에 offset일을 더한 날짜 만들기
+function addDays(base, offset) {
+  return new Date(base.getFullYear(), base.getMonth(), base.getDate() + offset);
+}
+
+// 게시 계획 만들기: [{ date, title, purpose, round }]
+function buildPostingPlan(frequency, seriesTitles, purpose) {
+  const today = new Date();
+  return getPostingOffsets(frequency).map((offset, i) => ({
+    date: addDays(today, offset),
+    round: i + 1,
+    title: seriesTitles[i % seriesTitles.length],   // 제목 목록을 차례대로 돌려 씁니다
+    purpose: purpose
+  }));
+}
+
+function formatDate(date) {
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+function formatDateLong(date) {
+  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAYS[date.getDay()]})`;
+}
+
+
+/* ==================================================================
+   [3] 생성 로직 · 화면 그리기 · 동작 (보통은 수정하지 않아도 됩니다)
+   ================================================================== */
+
+// 받침 여부 확인 (한글이 아니면 받침 없음으로 처리)
+function hasBatchim(word) {
+  const last = word.trim().slice(-1);
+  const code = last.charCodeAt(0) - 0xAC00;
+  if (code < 0 || code > 11171) return { yes: false, rieul: false };
+  const jong = code % 28;
+  return { yes: jong !== 0, rieul: jong === 8 };
+}
+
+// 조사 붙이기: josa("주제", "을") → "주제를"
+function josa(word, type) {
+  const b = hasBatchim(word);
+  const pairs = { "을": ["을", "를"], "이": ["이", "가"], "은": ["은", "는"], "과": ["과", "와"], "와": ["과", "와"] };
+  if (type === "로") return word + (b.yes && !b.rieul ? "으로" : "로");
+  const pair = pairs[type];
+  if (!pair) return word + type;
+  return word + (b.yes ? pair[0] : pair[1]);
+}
+
+// 문장 틀의 {키} / {키|조사} 를 실제 값으로 바꾸기
+function fill(template, vars) {
+  return template.replace(/\{([^}|]+)(?:\|([^}]+))?\}/g, (match, key, particle) => {
+    const value = vars[key];
+    if (value === undefined) return match;
+    return particle ? josa(value, particle) : value;
+  });
+}
+
+// 해시태그용으로 공백·특수문자 제거
+function toTag(text) {
+  return text.replace(/[^0-9A-Za-z가-힣_]/g, "");
+}
+
+function buildHashtags(input, purposeT, platformT) {
+  // 주제를 단어로 나눠 태그 후보로 사용 (조사로 끝나는 단어·꾸밈말은 제외)
+  const words = input.topic.split(/\s+/).map(toTag)
+    .filter(w => w.length >= 2 && !TAG_STOPWORDS.includes(w) && !/(을|를|은|는|이|가|의|에|와|과|도)$/.test(w));
+  const candidates = [
+    toTag(input.topic),
+    ...words,
+    toTag(input.target),
+    ...purposeT.tags,
+    ...platformT.tags,
+    ...EXTRA_TAGS
+  ];
+  const unique = [...new Set(candidates.filter(Boolean))];
+  return unique.slice(0, 8).map(t => "#" + t);
+}
+
+// 입력값 + 문장 틀 → 결과 데이터
+function generateIdeas(input) {
+  const purposeT = PURPOSE_TEMPLATES[input.purpose];
+  const platformT = PLATFORM_TEMPLATES[input.platform];
+  const vars = { 주제: input.topic, 타깃: input.target, 말투: input.tone, ...platformT.words };
+  const f = t => fill(t, vars);
+
+  const titles = [...purposeT.titles.map(f), f(platformT.title)];
+  const hooks = purposeT.hooks.map(f);
+  const body = {
+    intro: { label: platformT.bodyLabels.intro, text: f(purposeT.body.intro) },
+    points: purposeT.body.points.map((p, i) => ({ label: platformT.bodyLabels.points[i], text: f(p) })),
+    outro: { label: platformT.bodyLabels.outro, text: f(purposeT.body.outro) }
+  };
+  const ctas = purposeT.cta.map(f);
+  const hashtags = buildHashtags(input, purposeT, platformT);
+
+  // 게시 계획 제목: 제목 아이디어 5개 + 본문 핵심 3개(— 앞부분)를 차례대로 사용
+  const seriesTitles = [
+    ...titles,
+    ...purposeT.body.points.map(p => `${input.topic} · ${p.split(" — ")[0]}`)
+  ];
+  const plan = buildPostingPlan(input.frequency, seriesTitles, input.purpose);
+
+  return { input, titles, hooks, body, ctas, hashtags, plan, platformT, purposeT };
+}
+
+// HTML 특수문자 처리 (입력값이 화면을 깨뜨리지 않게)
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function renderResult(r) {
+  const { input, platformT, purposeT } = r;
+  const card = (num, title, inner) =>
+    `<article class="result-card"><h3><span class="num">${num}</span>${title}</h3>${inner}</article>`;
+
+  const bodyItems = [r.body.intro, ...r.body.points, r.body.outro]
+    .map(b => `<li><span class="part">${esc(b.label)}</span>${esc(b.text)}</li>`).join("");
+
+  const planItems = r.plan.map(p => `
+    <li class="plan-item">
+      <div class="plan-date"><span class="md">${formatDate(p.date)}</span><span class="dow">${WEEKDAYS[p.date.getDay()]}요일</span></div>
+      <div class="plan-body">
+        <p class="plan-title">${esc(p.title)}</p>
+        <div class="plan-meta"><span class="tag-label">${esc(p.purpose)}</span>${p.round}회차 · ${esc(input.platform)}</div>
+      </div>
+    </li>`).join("");
+
+  return `
+    <p class="tone-line">🎯 ${esc(input.platform)} · ${esc(input.purpose)} · ${esc(input.frequency)} &nbsp;|&nbsp; 💬 말투: ${esc(input.tone)}</p>
+    ${card(1, "제목 아이디어 5개", `<ol>${r.titles.map(t => `<li>${esc(t)}</li>`).join("")}</ol>`)}
+    ${card(2, "관심을 끄는 도입 문구 3개", `<ul>${r.hooks.map(h => `<li><span class="tag-label">${esc(platformT.hookLabel)}</span>${esc(h)}</li>`).join("")}</ul>`)}
+    ${card(3, "본문 구성", `<ul class="body-list" style="display:grid;gap:8px">${bodyItems}</ul>
+      <p class="caution">💡 ${esc(platformT.formatTip)} 문장은 ‘${esc(input.tone)}’ 말투로 다듬어 주세요.</p>
+      ${purposeT.caution ? `<p class="caution">${esc(purposeT.caution)}</p>` : ""}`)}
+    ${card(4, "행동 유도 문구(CTA) 2개", `<ol>${r.ctas.map(c => `<li>${esc(c)}</li>`).join("")}</ol>`)}
+    ${card(5, "관련 해시태그 8개", `<div class="hashtags">${r.hashtags.map(t => `<span>${esc(t)}</span>`).join("")}</div>`)}
+    ${card(6, "30일 게시 계획", `<p class="plan-summary">오늘(${formatDateLong(new Date())})부터 ${PLAN_DAYS}일 · ${esc(input.frequency)} · 총 ${r.plan.length}회 게시</p>
+      <ul class="plan-list">${planItems}</ul>`)}
+  `;
+}
+
+// 전체 복사용 텍스트 만들기
+function resultToText(r) {
+  const { input } = r;
+  const lines = [];
+  lines.push("[콘텐츠 아이디어 데스크] 템플릿 기반 초안");
+  lines.push(`주제: ${input.topic} / 타깃: ${input.target} / 말투: ${input.tone}`);
+  lines.push(`플랫폼: ${input.platform} / 목적: ${input.purpose} / 빈도: ${input.frequency}`);
+  lines.push("", "■ 제목 아이디어");
+  r.titles.forEach((t, i) => lines.push(`${i + 1}. ${t}`));
+  lines.push("", "■ 도입 문구");
+  r.hooks.forEach((h, i) => lines.push(`${i + 1}. ${h}`));
+  lines.push("", "■ 본문 구성");
+  [r.body.intro, ...r.body.points, r.body.outro].forEach(b => lines.push(`- [${b.label}] ${b.text}`));
+  lines.push("", "■ 행동 유도 문구(CTA)");
+  r.ctas.forEach((c, i) => lines.push(`${i + 1}. ${c}`));
+  lines.push("", "■ 해시태그", r.hashtags.join(" "));
+  lines.push("", `■ ${PLAN_DAYS}일 게시 계획 (총 ${r.plan.length}회)`);
+  r.plan.forEach(p => lines.push(`${formatDateLong(p.date)} | ${p.title} | ${p.purpose}`));
+  return lines.join("\n");
+}
+
+/* ---------- 화면 동작 연결 ---------- */
+const form = document.getElementById("briefForm");
+const output = document.getElementById("output");
+const copyBtn = document.getElementById("copyBtn");
+const copyStatus = document.getElementById("copyStatus");
+const copyFallback = document.getElementById("copyFallback");
+const copyArea = document.getElementById("copyArea");
+let currentText = "";   // 결과 텍스트는 실행 중에만 메모리에 보관 (저장 X)
+
+function setError(id, message) {
+  const el = document.getElementById(id);
+  el.setAttribute("aria-invalid", message ? "true" : "false");
+  document.getElementById(id + "-error").textContent = message;
+}
+
+function readInput() {
+  return {
+    topic: form.topic.value.trim(),
+    target: form.target.value.trim(),
+    tone: form.tone.value.trim() || DEFAULT_TONE,
+    platform: form.platform.value,
+    purpose: form.purpose.value,
+    frequency: form.frequency.value
+  };
+}
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  const input = readInput();
+
+  // 필수 입력 확인
+  setError("topic", input.topic ? "" : "주제를 입력해 주세요.");
+  setError("target", input.target ? "" : "타깃 고객을 입력해 주세요.");
+  if (!input.topic || !input.target) {
+    (input.topic ? form.target : form.topic).focus();
+    return;
+  }
+
+  // 다시 생성하면 기존 결과를 새 결과로 교체
+  const result = generateIdeas(input);
+  output.innerHTML = renderResult(result);
+  currentText = resultToText(result);
+  copyBtn.hidden = false;
+  copyStatus.textContent = "";
+  copyFallback.classList.remove("show");
+
+  // 모바일에서는 결과 위치로 이동
+  if (window.matchMedia("(max-width: 959px)").matches) {
+    document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+});
+
+// 입력하면 오류 문구 지우기
+["topic", "target"].forEach(id => {
+  form[id].addEventListener("input", () => { if (form[id].value.trim()) setError(id, ""); });
+});
+
+// 예시 입력 (✏️ 예시 내용을 바꾸고 싶다면 여기)
+document.getElementById("exampleBtn").addEventListener("click", () => {
+  form.topic.value = "대학생을 위한 바이브코딩 입문";
+  form.target.value = "코딩 경험이 없는 대학생";
+  form.tone.value = "친근하고 응원하는";
+  form.querySelector('input[name="platform"][value="인스타그램"]').checked = true;
+  form.querySelector('input[name="purpose"][value="교육"]').checked = true;
+  form.querySelector('input[name="frequency"][value="주 2~3회"]').checked = true;
+  setError("topic", "");
+  setError("target", "");
+});
+
+// 전체 복사: 클립보드 API → 구형 방식 → 직접 선택 안내 순서로 시도
+copyBtn.addEventListener("click", async () => {
+  if (!currentText) return;
+  let ok = false;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(currentText);
+      ok = true;
+    }
+  } catch (err) { ok = false; }
+
+  if (!ok) {
+    try {
+      const temp = document.createElement("textarea");
+      temp.value = currentText;
+      temp.setAttribute("readonly", "");
+      temp.style.position = "fixed";
+      temp.style.opacity = "0";
+      document.body.appendChild(temp);
+      temp.select();
+      ok = document.execCommand("copy");
+      document.body.removeChild(temp);
+    } catch (err) { ok = false; }
+  }
+
+  if (ok) {
+    copyStatus.textContent = "✅ 전체 결과를 복사했어요. 원하는 곳에 붙여넣기 하세요.";
+    copyFallback.classList.remove("show");
+  } else {
+    copyStatus.textContent = "";
+    copyArea.value = currentText;
+    copyFallback.classList.add("show");
+    copyArea.focus();
+    copyArea.select();
+  }
+});
+</script>
+</body>
+</html>
